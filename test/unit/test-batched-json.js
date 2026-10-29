@@ -104,23 +104,26 @@ describes.sandboxed('batchFetchJsonFor', {}, (env) => {
   describe('https enforcement', () => {
     const none = UrlReplacementPolicy_Enum.NONE;
 
-    it('requestForBatchFetch throws for a non-https src', () => {
+    it('requestForBatchFetch rejects a non-https src', () => {
+      expectAsyncConsoleError(/https/);
       const el = element('http://data.com');
-      expect(() =>
+      return expect(
         requestForBatchFetch(el, el.getAttribute('src'), none, false)
-      ).to.throw(/https/);
+      ).to.be.rejectedWith(/https/);
     });
 
-    it('requestForBatchFetch does not throw for an https src', () => {
+    it('requestForBatchFetch resolves for an https src', () => {
       const el = element('https://data.com');
-      expect(() =>
+      return expect(
         requestForBatchFetch(el, el.getAttribute('src'), none, false)
-      ).to.not.throw();
+      ).to.eventually.have.property('xhrUrl', 'https://data.com');
     });
 
     it('batchFetchJsonFor throws for a non-https src', () => {
       const el = element('http://data.com');
-      expect(() => batchFetchJsonFor(ampdoc, el)).to.throw(/https/);
+      allowConsoleError(() => {
+        expect(() => batchFetchJsonFor(ampdoc, el)).to.throw(/https/);
+      });
     });
   });
 });
